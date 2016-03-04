@@ -1,0 +1,37 @@
+
+# Scraping
+resp = requests.get('http://www.imdb.com/best-of/2014/top-box-office-2014?ref_=bo14_box_t1')
+soup = BeautifulSoup(resp.text, 'html.parser')
+# get the infos for every movie
+infos = soup.find_all("div", class_="info")[:25]
+# get the revenue info
+revenue = soup.find_all("div", class_="description")[1:26]
+
+# Q1
+titles=[]
+durs=[]
+ratings=[]
+nvotes=[]
+boxoffice=[]
+for x in infos:
+    # find the title
+    titles.append( x.b.a.text)
+    # find the duration
+    dur = x.find("div", class_='item_description').span.text
+    durs.append( dur[dur.index('(') + 1 : dur.index(".)")])
+    # find the rating
+    ratings.append(float(x.find("span", class_='rating-rating').span.text))
+    # find the votes
+    vote = x.find("div", class_="rating rating-list")['title']
+    nvotes.append(int(vote[vote.index('(') + 1 : vote.index("votes")].replace(',','')))
+# fing the revenue
+for y in revenue:
+    box = y.text
+    boxoffice.append( box[box.index('$') + 1:box.index(" m")])
+#put everything into the dataframe
+data = {'Title' : titles,
+       'Duration' : durs,
+       'IMDB Rating' : ratings,
+       'Num of Votes' : nvotes,
+       'Box Office Value' : boxoffice}
+df = DataFrame(data, columns=['Title', 'Duration', 'IMDB Rating', 'Num of Votes', 'Box Office Value'])
